@@ -1,0 +1,397 @@
+To create a Django project
+
+1. Create a folder F:/dcrm
+2. open that folder and then click (shift+rightclick)
+3. open powershell
+4. create virtual environment - type >> python -m venv virt(virt is name of the env we created any name could be thereS)
+5. check for the folder from shell by typing >>ls
+6. Activate the environment virt by typing >>virt/Scripts/activate
+7. now install django >>pip install django
+8. now install mysql inside the project by typing >>pip install mysql
+9. to connect with database we also need connector for that we need to install connector >>pip install mysql-connector-python also download >> pip install mysql-connector (for safe side if python connector give any issue)
+9. Create the project by typing  >>django-admin startproject dcrm(project name) 
+10. now check if all thing download successfully in shell type >>python manage.py runserver
+11. now to create the app type >>django-admin startapp website(app name) 
+12. open the link in browser which start with http://127.0.0.1:8000/ and check if its running successfully [now close the powershell]
+13. now create a database in mysql for that open mysql client command and create a database eg here >>create database dcrmdata
+14. To work on the project open the project with vscode open only the F:/dcrm/dcrm folder don't open the folder with virt but where the virt is present
+15. now mention the same database inside the settings.py of dcrm-    
+        DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.mysql',
+                'NAME': 'dcrmdata',
+                'USER': 'root',
+                'PASSWORD': '#Surabhi2000',
+                'HOST': 'localhost',
+                'PORT': '3306', 
+            }
+        }
+16. To connect with database with the project we need to migrate it for that inside the terminal of vscode type >>python manage.py migrate
+17. Double check if the migration is successfull by checking in the mysql client by typing >>use dcrmdata; then >>show tables;
+18. Also create a superuser to work on the app, for that type following inside the terminal >> python manage.py createsuperuser
+
+    Username (leave blank to use 'astha'): admin //give name admin
+    Email address:                               //leave it blank
+    Password:                                    //type your 8 digit pass it will not show the letter while typing and it ask for confirm password as well
+    Superuser created successfully.
+
+19. inside the setting files of dcrm folder uder Installed app mention the app name that we have created which is 'website'(point ref. 11)
+20. check if everything working fine by running the project server >>python manage.py runser (inside teminal) [close it by pressing ctrl+C]
+21. Now open the dcrm/urls.py file and mention-
+    from django.contrib import admin
+    from django.urls import path, include
+
+    urlpatterns = [
+        path('admin/', admin.site.urls),
+        path('', include('website.urls')),
+    ]
+here we will create a seprate url file for our app to make the project more clean
+22. create a file urls.py inside the website folder website/urls.py -
+    here we will mention all the url link that we create and not disturb the main dcrm/urls.py file
+            from django.urls import path
+            from . import views
+
+            urlpatterns = [
+                path('', views.home, name='home')
+            ]
+    above we have created a blank path '' which by default is the original server path which is directing the home file(home.html)
+23. Now we create a templates file, we will create the template file inside the app folder i.e. 'website' website/templates(not template)
+    (Confusing we can create templates folder outside website folder but the name should we the same as django check for templates folder other things will remain same like the url path will be syntaxed the same)
+24. Now we will create the home.html inside the website/templates/home.html
+25. to work with html in django we can create a base.html file in template/base.html and create the comman design for all the website in this html file such as navbar and footer
+    to work on base.html we will create usual html page structure head and body but to make it as base we fill first select the position where we want our diffecrent pages content to fit in 
+    by creating {% block body %} {% endblock %} both code in seprate line inside the body of html
+26. here we have created a seprate navbar.html file conect with the base.html with {% include 'navbar.html' %} just below the starting body tag
+27. To work on other html pages eg home.html (follow the below structure)
+
+    {% extends 'base.html' %} //for connecting with base page
+    {% block body %} or {% block content %}// to include base.html content in the home.html file
+
+    <h1>Hello World!</h1> // main content of home.html
+
+
+    {% endblock %}
+28. as we create other html page which is a link page we need to mention the page in website/url file and need to rendered in views.py as well
+29. Now to render the the html file in our case home.html(as it is link file) 
+    open views.py and type-----
+
+    from django.shortcuts import render
+    # Create your views here.
+    def home(request):
+        return render(request, 'home.html', {})
+
+30. To work with seprate css/js/or images we need to create a seprate folder with the name of static and the folder static/css or static/js or static/images and same save the respective files in those folder
+31. to load the static files in base.html folder {% load static %} mention this command at the top of the base.html file and we can use static files in any of the html files(since it is mentioned in the base one)
+
+
+### To make a login page we can use django built in authorization feature for that
+
+1. we need to import the django authorization in our app
+2. open views.py  and type
+    from django.contrib.auth import authenticate, login, logout
+    ## for login and logout messages
+    from django.contrib import messages
+3. To check if it's working fine just run the server and open the link in browser and in the link at browser add http://127.0.0.1:8000/admin
+   it will direct to a login window login with admin name and password(mentioned in superuser)
+4. this is the direct method but we want other user to login so we create a login page for that first in views.py create a login function and type the below commands
+    def login_user(request):
+        pass
+
+    def logout_user(request):
+        pass
+5. Instead of pass we actually need urls so for that we create urls (for that we create urls in website/urls.py)
+urlpatterns = [
+    path('', views.home, name='home'),
+    path('login/', views.login_user, name='login'),   //login url (here it direct tp html file login)
+    path('logout/', views.logout_user, name='logout'), //logout url (here it direct tp html file logout)
+
+]
+6. here we want to create home page as login page so for that remove the def login_user(request) function in views.py, we will make it through home function
+  so remove the login path inside the website/urls.py otherwise it will throw error
+7. we can add condition in our home.html page which will direct to welcome page otherwise login page by applying condition, for that we use-
+    {% if user.is_authenticated %}
+    //welcomecontent
+    {% else %}
+    // login content
+    {% endif %}
+8. in viewss.py we create logic in def home function to check for user login and also for generating messages
+    when a user is trying to login he is pulling a reuest but when user is visiting the home page he just accessing and not try to pull any request
+    so if contion if user try to pull login request else request for simply accessing home.html
+    logic-
+    if request.method=="POST":
+        username = request.POST['username'] #username inside the POST is the name inside the input tag of home.html
+        password = request.POST['password'] #password inside the POST is the name inside the input tag of home.html
+        # Authenticate
+        user = authenticate(request, username=username, password= password)
+        if user is not None:
+            login(request, user)
+            messages.success(request, "You have been logged In!")
+            return redirect('home')
+        else:
+            messages.success(request, "There was an error Loggin In, Please try again")
+            return redirect('home')
+    else:
+        return render(request, 'home.html', {})
+9. The message will only be displayed if we give it a medium for it for that in base.html we need to create logic for displaying messages 
+    in base.html just befor starting of {% body content %}
+    logic-
+    {% if messages %}
+      {% for message in messages %}
+        {{ message }}
+    {% endfor %}
+
+    we can make it more asthetic by applying bootstrap and dispalying the messages through alerts.
+10. after successfully creating the login page we need to log out as well, so now  we create logout page and logic
+11. open the views.py and inside the logout function apply the logic
+    logic-
+    def logout_user(request):
+        logout(request)
+        messages.success(request, "You have been Logged out...")
+        return redirect('home')
+12. now the logic is created we now just simply create a link in the navbar for logout
+    this also require logic in navbar if user is authenticated then only it will do the logout else it will direct to home page for login
+    in base.html-
+          {% if user.is_authenticated %}      
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'logout' %}">Logout</a>
+          </li> 
+          {% else %}  
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'home' %}">Login</a>
+          </li>          
+          {% endif  %} 
+
+## REGISTER FROM 
+
+1. for this we need django from
+2. in website/urls.py mention the path for register  path('register/', views.register_user, name='register'),
+3. create a def register_user function in views.py (keep pass inside the fuction for the time being) or just simply mention
+   return render(request, 'register.html', {}) and create a register.html file inside templates
+4. now we also create a link in navbar for register as well, so if the user is not authenticated it will either direct to home/login page which has the links for 
+    home/login and for register in the navbar
+    so
+    inside the else condition of user.is_authenticated we will add a resigeter link same as login link
+    logic-
+        <li class="nav-item">
+            <a class="nav-link" href="{% url 'register' %}">Register</a>
+        </li> 
+5. After creating register.html we give the body structure with extended base.html
+    {% extends 'base.html' %}
+    {% block content %}
+    <h1>Register</h1>
+
+    {% endblock %}
+6. since we are going to work with django forms we will create a forms.py in our app website/forms.py
+7. in forms.py 
+        we will import the following things-
+        from django.contrib.auth.forms import UserCreationForm
+        from django.contrib.auth.models import User
+        from django import forms
+8. we will now create the class in forms.py 
+    the class eg 
+    class SignUpForm(UserCreationForm)  #this class SignUpForm inhireted the UserCreationForm 
+
+9. This class SignUpForm will consist which need for registration and meta class inside of it as well
+
+class SignUpForm(UserCreationForm):
+    email = forms.EmailField(label="",widget=forms.TextInput(attrs={'class':'form-control','placeholder':'Email Address'}))   #here widget is EmailField parameter and we use forms.Textarea which takes attributes of bootstrap classes such as form-control
+    first_name = forms.CharField(label="", max_length=100,widget=forms.TextInput(attrs={'class':'form-control','placeholder':'First Name'}))
+    last_name = forms.CharField(label="",max_length="",widget=forms.TextInput(attrs={'class':'form-control','placeholder':'Last Name'}))
+    
+    class Meta:
+        model = User #which is model name
+        fields = ('username', 'first_name', 'last_name','email','password1','password2')  #django usually take two password so we mention the two
+
+10. since in the field we have username, password1 and password2 as well we will create attributes same as we did for email,firstname and lastname inside SignUpForm
+    we create a seprate child class or constructor which consist of attributes for the remaning one like below- (since it is constructor we will define this class inside the SignUpForm class just below after defining class meta)
+
+    def __init__(self, *args, **kwargs):
+        super(SignUpForm, self).__init__(*args, **kwargs)
+
+        self.fields['username'].widget.attrs['class'] = 'form-control'
+        self.fields['username'].widget.attrs['placeholder'] = 'User Name'
+        self.fields['username'].label = ''
+        self.fields['username'].help_text = '<span class="form-text text-muted"><small>Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only.</small></span>'
+
+        self.fields['password1'].widget.attrs['class'] = 'form-control'
+        self.fields['password1'].widget.attrs['placeholder'] = 'Password'
+        self.fields['password1'].label = ''
+        self.fields['password1'].help_text = '<ul class="form-text text-muted small"><li>Your password can\'t be too similar to your other personal information.</li><li>Your password must contain at least 8 characters.</li><li>Your password can\'t be a commonly used password.</li><li>Your password can\'t be entirely numeric.</li></ul>'
+
+        self.fields['password2'].widget.attrs['class'] = 'form-control'
+        self.fields['password2'].widget.attrs['placeholder'] = 'Confirm Password'
+        self.fields['password2'].label = ''
+        self.fields['password2'].help_text = '<span class="form-text text-muted"><small>Enter the same password as before, for verification.</small></span>'	
+
+11. now open views.py and import the SignUpForm class-- from .form import SignUpForm
+12. just like login the user is posting so we create the same method request POST in registeration as well
+    type the following in resigeter.html
+    {% extends 'base.html' %}
+    {% block content %}
+    <div class="col-md-6 offset-md-3">
+        <h1>Register</h1>
+        <br/>
+        <form method="POST" action="{% url 'home' %}">
+            {% csrf_token %}
+            {{ form.as_p }}  
+            <!-- here the form is the same form which is equal to SignUpForm in views.py  -->
+                <button type="submit" class="btn btn-secondary">Register</button>
+        </form>
+    </div>   
+    {% endblock %}
+13. we will add logic in case of error in register.html just below csrf token and register form 
+    logic-
+    {% if form.errors %}
+			<div class="alert alert-warning alert-dismissible fade show" role="alert">
+			Your Form Has Errors
+			    {% for field in form %}
+			  	    {% if field.errors %}
+			  		    {{ field.errors }}
+			  	    {% endif %}
+			    {% endfor %}
+			  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+			</div>
+		{% endif %}
+
+14. now if we check the server on browser fill out the detail but mismatched confirm password it will throw password error page
+15. Insted of getting an error displaying page we want error to be displayed user friendly and without throwing a whole page error
+16. So in views.py inside the registration function we will create a return statement just below the if else condition to return to register page in case of error
+    logic- return render(request, 'register.html', {'form':form})
+
+## DATABASE model
+
+1. for working with database in django we use model.py file in our app location website/model.py
+2. the code inside the model.py is pure python no sql/mysql/postgres is used Django itself manage to produce codes according to the database we are using in backend
+3. So first create a class in model 
+    eg-
+    class Record(models.Model): #here Record is user defined could be any name
+4. logic for creating the table
+    class Record(models.Model):
+        created_at = models.DateTimeField(auto_now_add=True)
+        first_name = models.CharField(max_length=50)
+        last_name = models.CharField(max_length=50)
+        email = models.CharField(max_length=100)
+        phone = models.CharField(max_length=15)
+        address = models.CharField(max_length=100)
+        city = models.CharField(max_length=50)
+        state = models.CharField(max_length=50)
+        zipcode = models.CharField(max_length=20)
+        
+        def __str__(self):
+            return(f"{self.first_name} {self.last_name}")
+5. After this we need to the makemigrations in the terminal , first exist the server then do the migration by typing-
+    python manage.py makemigrations   ## it will create a file in migration folder with the name 0001_intiL.PY
+6. After this do the migration python mange.py migration
+7. since we did the migration in starting django already did the migration of other nessary tables but this time it will create a new table with the name website_record
+8. we can both check the filed and table desc in 0001_initial.py and website_record through mysql cmd client 
+9. now again if we start the server and login in admin portal login we will not able to see the record because we have not created a display for it there so to so
+10. open admin.py in app location website/admin.py 
+11. inside admin.py, from .models import Record and call the class with admin.site.register(Record)
+12. hence the logic inside the admin.py is-
+    from django.contrib import admin
+    from .models import Record
+    # Register your models here.
+    admin.site.register(Record)
+13. open admin pages you can now see a Records(pural of our class name)
+14. you can add record by clicking on Records
+
+## VIEW RECORDS ON WEBSITE
+
+1. go to views.py file and in home function give a key to Record.objects.all() --->records = Record.objects.all() (here the name of key is record)
+2. here if the user is not posting it means the user is alrady logged in so in the else condition of outer if in home function we will return 
+     return render(request, 'home.html', {'records': records}) #(which earlier was blank here records mentioned first is passed in home.html which we fetch with python in home.html)
+3. Now open home.html and just below user authenticate else condition we mention the below logic (before the starting of else of first authentication condition)
+    {% if user.is_authenticated %}
+
+        <h1>Records...</h1>
+        {% if records %}
+
+            {% for record in records %}
+              <!-- here records is the same records mentioned in th eend of return statement of home function in views -->
+              {{ record }}<br/>
+            {% endfor %}
+
+        {% endif %}
+4. now we go the server it will show records that we have filled during admin login on successfull login with any user
+5. The record that are displayed will only be first name and last name because in models.py under def __str__(self) we only returned first name and last name
+6. But to grab specific item instead of just first name and last name we can use other method instead of just returning the value in def __str__(self) 
+7. for that open home.html and inside the for condition of records instead of just mentioning plane {{ record }} we can give specification
+8. like -
+              {{ record.first_name }}
+              {{ record.last_name }}
+              {{ record.email }}
+              {{ record.phone }}
+              {{ record.address }}
+              {{ record.city }}
+              {{ record.state }}
+              {{ record.zipcode }}
+              {{ record.created_at }}
+              {{ record.id }}
+    the whole specification should be same as mentioned inside model.py or inside the table
+
+## Creating table to display records
+
+9. open bootstrap and go to conten>table take that from there accordingly 
+10. logic -
+    <table class="table">
+          <thead>
+            <tr>
+              <th scope="col">Name</th>
+              <th scope="col">Email</th>
+              <th scope="col">Phone</th>
+              <th scope="col">Address</th>
+              <th scope="col">City</th>
+              <th scope="col">state</th>
+              <th scope="col">Zipcode</th>
+              <th scope="col">Created At</th>
+              <th scope="col">ID</th>
+            </tr>
+          </thead>
+          <tbody>
+            
+        {% if records %}
+
+            {% for record in records %}
+              <!-- here records is the same records mentioned in th eend of return statement of home function in views -->
+              <tr>
+              <td>{{ record.first_name }}
+              {{ record.last_name }}</td>
+              <td>{{ record.email }}</td>
+              <td>{{ record.phone }}</td>
+              <td>{{ record.address }}</td>
+              <td>{{ record.city }}</td>
+              <td>{{ record.state }}</td>
+              <td>{{ record.zipcode }}</td>
+              <td>{{ record.created_at }}</td>
+              <td>{{ record.id }}</td>
+            </tr><br/>
+            {% endfor %}
+
+        {% endif %}
+            
+          </tbody>
+    </table>
+
+    here we did some modification in home.html like removed te div tag at top of the code which is for aligning the content 
+    just after authentication condtion we mentioned the table and as f or the record condion and loop we fabricated it with the table accordingly\
+
+## INDIVIDUAL RECORD
+
+1. We can create a seprate page to just add/modify record, lets create a record.html file inside website/template
+2. Also create a url path in website/urls.py path('record/<int:pk>', views.customer_record, name='record'), 
+    here we have also passed an extra variable pk(primary key) which we use in customer_record fuction in vews.py file
+    this pk look like localhost/record/2 here 2 tell we working on record 2 which is inshord the id no and is also a primary key
+3. Create a class def customer_record(request, pk): 
+4.  now in fuction customer_record we ony want the person that if it has logged in and not view the records
+5. logic for customer_record function-
+        def customer_record(request, pk):
+            if request.user.is_authenticated:
+                # Look up records
+                customer_record = Record.objects.get(id=pk) #instead of using all we just mentioned get to open that specfic id
+                return render(request, 'record.html', {'customer_record':customer_record})
+            else:
+                messages.success(request, "You must be logged in to view that page!")
+                return redirect('home')
+6. In home.html table of record, inside the Id section of table we will make each ID as lin to view the record - <td><a href="{% url 'record' record.id %}">{{ record.id }}</a></td>
+   above we directed the page to record here record.id can be seen just at the left corner of browser screen while hovering over the link
+7. 
