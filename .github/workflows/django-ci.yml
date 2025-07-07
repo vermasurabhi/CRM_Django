@@ -10,30 +10,6 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    services:
-      postgres:
-        image: postgres:13
-        env:
-          POSTGRES_DB: testdb
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd="pg_isready"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=5
-
-    env:
-      SECRET_KEY: dummysecretkey
-      DEBUG: True
-      DB_NAME: testdb
-      DB_USER: postgres
-      DB_PASSWORD: postgres
-      DB_HOST: localhost
-      DB_PORT: 5432
-
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
@@ -43,7 +19,12 @@ jobs:
       with:
         python-version: '3.9'
 
-    - name: Install dependencies
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y default-libmysqlclient-dev build-essential
+
+    - name: Install Python dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
